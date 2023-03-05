@@ -1,0 +1,92 @@
+version: "3"
+
+services:
+    nx_wpblogen:
+        build:
+            context: ./config/wordpress
+        container_name: "nx_wpblogen"
+        tty: true
+        restart: "always"
+        environment:
+            WORDPRESS_DB_HOST: vr_mariadb10p3
+            WORDPRESS_DB_USER: policypak
+            WORDPRESS_DB_PASSWORD: DockerJoomPPK
+            WORDPRESS_DB_NAME: netwrix3_wordpress
+        volumes:
+            - ./data/logs:/var/log/docker
+            - ./config/wordpress/wp-config.php:/var/www/html/wp-config.php
+            - ${PATH_NXBLOG_REPO}/wp-content:/var/www/html/wp-content:rw
+        ports:
+            - "${PORT_EXPOSE_NXBLOGEN}:80"
+        links:
+            - vr_mariadb10p3
+    vr_php74apache:
+        build:
+            context: ./config/php7.4
+        container_name: "vr_php74apache"
+        tty: true
+        restart: "always"
+        volumes:
+            - ./data/html:/var/www/html/
+            - ./data/logs:/var/log/docker/
+            - ./config/vhosts:/etc/apache2/sites-enabled/
+            - ${PATH_KCMRA_REPO}:/var/www/kevin-mra/
+            - ${PATH_KCMSS_REPO}:/var/www/kevin-mss/
+            - ${PATH_MINIAPP_REPO}:/var/www/minicat-app/
+            - ${PATH_KEAPiSDK_REPO}:/var/www/idev/keap-isdk/
+            - ${PATH_MINICORE_REPO}:/var/www/idev/minicat-core/
+        ports:
+            - "${PORT_EXPOSE_APACHE74}:80"
+        links:
+            - vr_mariadb10p3
+
+    vr_php74nginx:
+        build:
+            context: ./config/php7.4
+            dockerfile: DockerfileFpm
+        container_name: "vr_php74nginx"
+        tty: true
+        restart: "always"
+        volumes:
+            - ${PATH_MINIAPP_REPO}:/var/www/minicat-app/
+            - ${PATH_MINICORE_REPO}:/var/www/idev/minicat-core/
+        ports:
+            - "${PORT_EXPOSE_NGINX74}:80"
+        links:
+            - vr_mariadb10p3
+
+    vr_mariadb10p3:
+        build:
+            context: ./config/mariadb
+            args:
+                - MYSQL_USER=policypak
+                - MYSQL_ROOT_PASSWORD=DockerJoomPPK
+        command: '--default-authentication-plugin=mysql_native_password'
+        container_name: "vr_mariadb10p3"
+        restart: "always"
+        volumes:
+            - ./data/dbs:/var/lib/mysql/
+            - ./data/init:/docker-entrypoint-initdb.d/:rwx
+        environment:
+            MYSQL_USER: policypak
+            MYSQL_PASSWORD: DockerJoomPPK
+            MYSQL_ROOT_PASSWORD: DockerJoomPPK
+        ports:
+            - "127.0.0.1:${PORT_EXPOSE_MARIADB}:3306"
+
+    vr_phpmyadmin5:
+        container_name: "vr_phpmyadmin5"
+        image: phpmyadmin:5.1.1-apache
+        restart: "always"
+        environment:
+            MYSQL_USER: policypak
+            MYSQL_PASSWORD: DockerJoomPPK
+            MYSQL_ROOT_PASSWORD: DockerJoomPPK
+            PMA_HOST: vr_mariadb10p3
+            UPLOAD_LIMIT: 512M
+        depends_on:
+            - vr_mariadb10p3
+        ports:
+            - "${PORT_EXPOSE_PMA}:80"
+        links:
+            - vr_mariadb10p3
