@@ -1,6 +1,27 @@
 version: "3"
 
 services:
+    nx_yiimain:
+        build:
+            context: ./config/yii2
+        container_name: "nx_yiimain"
+        tty: true
+        restart: "always"
+        environment:
+            WORDPRESS_DB_HOST: vr_mariadb10p3
+            WORDPRESS_DB_USER: policypak
+            WORDPRESS_DB_PASSWORD: DockerJoomPPK
+            DOCKER_MODE: local
+        volumes:
+            - ./data/logs:/var/log/docker
+            - ./config/yii2/env:/var/www/html/env
+            - ${PATH_NXMAIN_REPO}:/var/www/html/:rw
+            - ${PATH_NXMAIN_REPO}/.docker/local/apache-php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+        ports:
+            - "${PORT_EXPOSE_NXMAIN}:80"
+        links:
+            - vr_mariadb10p3
+
     nx_wpblogen:
         build:
             context: ./config/wordpress
@@ -20,6 +41,7 @@ services:
             - "${PORT_EXPOSE_NXBLOGEN}:80"
         links:
             - vr_mariadb10p3
+
     vr_php74apache:
         build:
             context: ./config/php7.4
