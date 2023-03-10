@@ -5,6 +5,9 @@ LABEL maintainer="Leo Storozhev"
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get install -y libzip-dev zip \
+    && docker-php-ext-install zip
+
 RUN a2enmod rewrite headers expires ssl \
     && apt-get upgrade -y \
     && apt-get update -y \
@@ -18,8 +21,7 @@ RUN a2enmod rewrite headers expires ssl \
     && apt-get install libxml2-dev -y \
     && apt-get install libmcrypt-dev libreadline-dev -y \
     && apt-get install libcurl4-openssl-dev -y \
-    && docker-php-ext-install docker-php-ext-zip-install \
-    && ldap gd pdo_mysql mysqli soap xmlrpc curl
+    && docker-php-ext-install ldap gd pdo_mysql mysqli soap xmlrpc curl
 
 RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer  
 
