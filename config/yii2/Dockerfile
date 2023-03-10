@@ -5,12 +5,12 @@ LABEL maintainer="Leo Storozhev"
 # Fix debconf warnings upon build
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get install -y libzip-dev zip \
+RUN apt-get upgrade -y \
+    && apt-get update -y \
+    && apt-get install -y libzip-dev zip \
     && docker-php-ext-install zip
 
 RUN a2enmod rewrite headers expires ssl \
-    && apt-get upgrade -y \
-    && apt-get update -y \
     && apt-get install -y --no-install-recommends apt-utils \
     && apt-get install git -y \
     && apt-get install libldb-dev -y \
